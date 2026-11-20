@@ -1,0 +1,227 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Smart Library Seat Finder</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f5f6fa;--card:#fff;--tx:#1c2233;--mut:#6b7389;--bd:#dde1ec;--pri:#3b5bdb;--free:#2f9e44;--bk:#f59f00;--in:#e03131;--brk:#1c7ed6;--sp:#9c36b5;--pre:#868e96}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#12151f;--card:#1b2030;--tx:#e8ebf5;--mut:#9aa3bd;--bd:#2b3248;--pri:#748ffc}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select{font:inherit;color:inherit}
+.btn{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:600}
+.btn.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}.btn:disabled{opacity:.4}
+input,select{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:9px 10px;width:100%}
+.wrap{max-width:1000px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px}
+.hero{text-align:center;padding:12vh 16px}.hero h1{font-size:2.2rem;margin:.2em 0}.hero p{color:var(--mut);max-width:520px;margin:0 auto 24px}
+.login{max-width:340px;margin:12vh auto}.login input{margin:6px 0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.tabs .btn{padding:7px 12px}.tabs .on{background:var(--pri);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:4px}
+.seat{aspect-ratio:1;border-radius:6px;font-size:10px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;background:var(--free)}
+.seat.booked{background:var(--bk)}.seat.in{background:var(--in)}.seat.break{background:var(--brk)}.seat.pre{background:var(--pre)}
+.seat.sp{background:var(--sp)}.seat.sp.booked,.seat.sp.in,.seat.sp.break{outline:2px solid var(--sp)}
+.seat.pre{background:var(--pre);outline:2px dashed var(--sp)}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin:8px 0}.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.qrs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.qrs .card{text-align:center;margin:0}
+.mut{color:var(--mut);font-size:13px}.big{font-size:1.6rem;font-weight:700}
+.bar{background:var(--pri);border-radius:4px 4px 0 0;min-height:2px}.bars{display:flex;align-items:flex-end;gap:5px;height:140px}.bars div{flex:1;text-align:center;font-size:10px}
+table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid var(--bd);text-align:left;font-size:14px}
+#toast{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:9;pointer-events:none}
+#toast div{background:var(--tx);color:var(--bg);padding:10px 14px;border-radius:10px;max-width:520px;margin:0 auto}
+.hide{display:none}.err{color:var(--in)}.ok{color:var(--free)}
+body{background:radial-gradient(1100px 600px at 5% -10%,#4c6ef544,transparent),radial-gradient(900px 500px at 100% 0,#9c36b544,transparent),var(--bg);min-height:100vh}
+.card{backdrop-filter:blur(6px);box-shadow:0 8px 26px #0000001f}
+.btn{transition:transform .15s,box-shadow .15s}.btn:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 6px 14px #0003}
+.top{background:linear-gradient(90deg,var(--pri),var(--sp));color:#fff;padding:12px 16px;border-radius:14px;box-shadow:0 8px 24px #3b5bdb55}.top .btn.g{color:#fff;border-color:#fff8}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}}@keyframes spin{from{transform:rotateX(-20deg) rotateY(0)}to{transform:rotateX(-20deg) rotateY(360deg)}}@keyframes pl{50%{filter:brightness(1.3)}}@keyframes fl{50%{transform:translateY(-14px) rotate(8deg)}}
+.login,.hero .btn,.hero p,.hero h1{animation:rise .7s both}.hero h1{background:linear-gradient(90deg,var(--pri),var(--sp));-webkit-background-clip:text;background-clip:text;color:transparent}
+.scene{perspective:900px;height:210px;display:flex;justify-content:center;align-items:center;gap:60px}.cube{width:110px;height:110px;position:relative;transform-style:preserve-3d;animation:spin 12s linear infinite}
+.cube b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.4rem;background:linear-gradient(135deg,#3b5bdbcc,#9c36b5cc);border:1px solid #fff7;border-radius:10px}
+.cube b:nth-child(1){transform:translateZ(55px)}.cube b:nth-child(2){transform:rotateY(90deg) translateZ(55px)}.cube b:nth-child(3){transform:rotateY(180deg) translateZ(55px)}.cube b:nth-child(4){transform:rotateY(-90deg) translateZ(55px)}.cube b:nth-child(5){transform:rotateX(90deg) translateZ(55px)}.cube b:nth-child(6){transform:rotateX(-90deg) translateZ(55px)}
+.scene span{font-size:2.6rem;animation:fl 3s ease-in-out infinite}.scene span:last-child{animation-delay:1.5s}
+.grid{perspective:800px}.plane{transform:perspective(900px) rotateX(14deg);transform-origin:50% 0}
+.seat{transition:transform .2s,box-shadow .2s;box-shadow:0 3px 0 #0004}.seat:hover{transform:translateZ(20px) rotateX(-12deg) scale(1.3);z-index:2;box-shadow:0 10px 16px #0005}.seat:not(.booked):not(.in):not(.break):not(.pre){animation:pl 3s infinite}
+.zone{border:2px dashed var(--sp);border-radius:14px;padding:12px;margin:12px 0;background:#9c36b514}.zone.gen{border-color:var(--free);background:#2f9e4410}.zone h4{margin:0 0 10px;color:var(--sp)}.zone.gen h4{color:var(--free)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}.stat{border-radius:14px;padding:14px;color:#fff;box-shadow:0 8px 18px #0003}.stat b{font-size:1.7rem;display:block}
+:root{--pri:#f37021;--bg:#fff6ee}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pri:#ff8a3d}}
+.top{background:linear-gradient(90deg,#f37021,#d9480f,#2b2b2b,#f37021);background-size:300% 100%;animation:grad 10s ease infinite}@keyframes grad{50%{background-position:100% 0}}@keyframes drift{to{transform:translate(70vw,30vh) scale(1.4)}}
+body::before{content:"";position:fixed;width:420px;height:420px;border-radius:50%;background:#f3702144;filter:blur(60px);top:15%;left:-120px;animation:drift 14s ease-in-out infinite alternate;z-index:-1}
+.hero h1{background:linear-gradient(90deg,#f37021,#ff9a3c,#d9480f);-webkit-background-clip:text;background-clip:text;color:transparent}.cube b{background:linear-gradient(135deg,#f37021cc,#2b2b2bcc)}
+.tag{display:inline-block;background:#f37021;color:#fff;padding:4px 14px;border-radius:20px;font-weight:700;letter-spacing:.06em;font-size:12px;text-transform:uppercase}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;perspective:1000px}
+.fcard{position:relative;overflow:hidden;border-radius:18px;padding:22px;color:#fff;cursor:pointer;transition:transform .3s,box-shadow .3s;box-shadow:0 10px 24px #0003}.fcard:hover{transform:perspective(700px) rotateY(-8deg) rotateX(6deg) translateZ(22px);box-shadow:0 22px 40px #0005}
+.fcard::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,#fff5,transparent);transform:skewX(-20deg);transition:left .7s}.fcard:hover::after{left:130%}
+.fi{font-size:2.8rem;animation:fl 3s ease-in-out infinite}.fcard h3{margin:4px 0}.fn{font-weight:700}.fcard p{opacity:.9;margin:6px 0}
+.prog{height:8px;background:#fff4;border-radius:6px;overflow:hidden;margin:8px 0}.prog i{display:block;height:100%;background:#fff;transition:width .6s}
+.stat{transition:transform .25s}.stat:hover{transform:translateY(-6px) scale(1.05)}
+:root{--sp:#3d4451}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sp:#9aa3bd}}
+.top{background:linear-gradient(90deg,#f37021,#2b2b2b);animation:none}
+.stat{background:var(--card)!important;color:var(--tx);border:1px solid var(--bd);border-left:5px solid #f37021;box-shadow:0 6px 16px #0000001a}.stat b{color:#f37021}
+.zone{border-color:var(--sp);background:#3d445112}.zone h4{color:var(--tx)}.zone.gen{border-color:#f37021;background:#f3702110}.zone.gen h4{color:#f37021}
+.fcard.f1{background:#f37021!important}.fcard.f2{background:#2b2b2b!important}.fcard.f3{background:var(--card)!important;color:var(--tx);border:2px solid #f37021}.fcard.f3 .prog{background:var(--bd)}.fcard.f3 .prog i{background:#f37021}.fcard.f4{background:linear-gradient(135deg,#f37021 50%,#2b2b2b 50%)!important}
+.fcard.f2:hover{transform:translateY(-10px) scale(1.04)}.fcard.f3:hover{transform:rotate(-2deg) scale(1.04)}.fcard.f4:hover{transform:perspective(700px) rotateY(8deg) translateZ(22px)}
+@keyframes z1{to{transform:scale(1.5);opacity:0}}@keyframes z2{to{transform:perspective(700px) rotateY(90deg);opacity:0}}@keyframes z3{to{transform:translateX(110%);opacity:0}}@keyframes z4{to{transform:rotate(10deg) scale(.5);opacity:0}}
+.go1{animation:z1 .45s forwards}.go2{animation:z2 .45s forwards}.go3{animation:z3 .45s forwards}.go4{animation:z4 .45s forwards}
+#t-map .zone{animation:rise .6s both}
+body::after{content:"";position:fixed;inset:0;z-index:-2;background-image:radial-gradient(#f3702133 1.5px,transparent 1.5px);background-size:26px 26px;animation:pan 20s linear infinite}@keyframes pan{to{background-position:26px 26px}}
+#bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}#bg span{position:absolute;bottom:-60px;opacity:.16;animation:up linear infinite}@keyframes up{to{transform:translateY(-115vh) rotate(360deg)}}
+:root{--free:#2f9e44;--brk:#868e96}
+.grid{perspective:none}.plane{transform:none}#t-map .zone{animation:none}
+.seat,.seat:not(.booked):not(.in):not(.break):not(.pre){transition:none;animation:none;box-shadow:none}.seat:hover{transform:none;box-shadow:none;outline:2px solid var(--tx);z-index:1}
+.seat.booked{background:#ffb27a;color:#2b2b2b}.seat.sp{background:var(--card);color:var(--tx);border:2px solid var(--sp)}
+.seat.sp.booked{background:#ffb27a;color:#2b2b2b}.seat.sp.in{background:var(--in);color:#fff;outline:0}.seat.sp.break{background:var(--brk);color:#fff;outline:0}.seat.sp.pre{background:var(--pre);color:#fff;outline:2px dashed var(--sp)}
+</style></head><body>
+<div id="bg"></div><div id="home" class="hero hide"><div class="scene"><span>📖</span><div class="cube"><b>📚</b><b>🪑</b><b>🎓</b><b>🔬</b><b>⚖️</b><b>📝</b></div><span>🎓</span></div><div class="tag">Lovely Professional University</div><h1>LPU Smart Library Seat Finder</h1>
+<p>Find a free seat across 4 floors in seconds. Book, check in with a QR at your seat, take a 20-minute break, and never fight over a bag-reserved seat again.</p>
+<button class="btn" style="font-size:1.1rem;padding:12px 28px" onclick="go('login')">Get Started</button></div>
+
+<div id="login" class="login hide card"><h2 style="margin-top:0" id="lh">Login</h2>
+<input id="uid" placeholder="User ID (e.g. 21CS101)" autocomplete="username"><input id="pw" type="password" placeholder="Password (min 4 chars)" autocomplete="current-password">
+<div id="lerr" class="err mut"></div><button class="btn" id="lb" style="width:100%;margin-top:8px" onclick="login()">Login</button><button class="btn g" id="rm" style="width:100%;margin-top:6px" onclick="regMode()">New student? Register</button>
+<p class="mut">Admin demo: <b>admin</b> / <b>admin123</b></p>
+<button class="btn g" style="width:100%" onclick="go('home')">Back</button></div>
+
+<div id="app" class="wrap hide">
+<div class="top"><div><b id="who"></b> <span class="mut" id="clock"></span></div>
+<div><button class="btn g" onclick="skip(10*60e3)" title="Demo: fast-forward time">⏩ +10 min</button> <button class="btn g" onclick="skip(864e5)">+1 day</button> <button class="btn g" onclick="logout()">Logout</button></div></div>
+<div class="stats" id="stats"></div><div class="tabs" id="tabs"></div>
+
+<section id="t-floors" class="hide"><div class="card"><h3 style="margin:0">Choose a floor</h3><div class="mut">Tap a floor to see only that floor’s live seat map.</div></div><div id="fl"></div></section>
+<section id="t-map"><div class="card"><div class="tabs" id="ftabs"></div><button class="btn g" onclick="show('floors')">← All floors</button> <div id="fname" class="big"></div><div id="fstat" class="mut"></div>
+<div class="leg"><span><i style="background:var(--free)"></i>Free</span><span><i style="background:var(--bk)"></i>Booked (awaiting check-in)</span><span><i style="background:var(--in)"></i>Occupied</span><span><i style="background:var(--brk)"></i>On break</span><span><i style="background:var(--sp)"></i>Special exam seat</span><span><i style="background:var(--pre)"></i>Pre-booked exam seat</span></div>
+<div class="zone"><h4>🎓 EXAM ZONE — separate area, pre-book 7+ days ahead (seats 1–25)</h4><div id="xmap" class="grid plane"></div></div><div class="zone gen"><h4>📖 General Area — walk-in booking (seats 26–125)</h4><div id="map" class="grid plane"></div></div><p class="mut">Updates every second (and instantly across open tabs). Tap a free seat to book it.</p></div></section>
+
+<section id="t-book" class="hide"><div class="card"><h3 style="margin-top:0">Search seats</h3>
+<div class="row"><select id="sf" onchange="srch()"><option value="0">All floors</option><option value="1">1 · Discussion Hall</option><option value="2">2 · CS &amp; Engineering</option><option value="3">3 · Bio &amp; Law</option><option value="4">4 · Stories, Books &amp; GK</option></select>
+<select id="st" onchange="srch()"><option value="g">General seats</option><option value="s">Special exam seats</option></select>
+<input id="sn" type="number" min="1" max="125" placeholder="Seat no." oninput="srch()"></div>
+<div id="res" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px"></div></div>
+<div class="card"><h3 style="margin-top:0">Book seat</h3><div id="sel" class="mut">Select a seat from the results or the map.</div>
+<div class="row" style="margin-top:8px"><select id="hrs"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+<input id="dt" type="date"></div><p class="mut">Hours: seat is auto-released when time is up. Special exam seats must be pre-booked at least 7 days ahead (pick the date). Walk-in bookings must be checked in within 15 min.</p>
+<div id="berr" class="mut"></div><button class="btn" onclick="book()">Confirm booking</button> <button class="btn g" onclick="quick()">⚡ Auto-pick best seat</button></div></section>
+
+<section id="t-mine" class="hide"><div id="mine"></div></section>
+<section id="t-admin" class="hide"><div id="adm"></div></section>
+</div><div id="toast"></div>
+
+<script>
+const K='libseat26',FL={1:'Discussion Hall',2:'Computer Science & Engineering — Notes & Lab',3:'Bio & Law Students',4:'Stories, Books & General Knowledge'};
+let S,me=null,cur=1,pick=null,tab='map',seen={},DB=null,sw=0,HID=Math.random().toString(36).slice(2);
+const $=i=>document.getElementById(i);
+function load(){try{return JSON.parse(localStorage.getItem(K))}catch(e){return null}}
+function save(){if(DB)return;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+function seed(){const L=[],hog=['2-30','2-31','3-40','4-50','1-60','1-61','2-77','3-90'],H=[9,10,10,11,11,11,12,14,15,15,16,16,16,17,17,18,19,20];
+for(let i=0;i<600;i++){const h=i%3==0;L.push({seat:h?hog[i%8]:(1+i%4)+'-'+(26+(i*37)%100),uid:'seed',hour:H[(i*7)%H.length],hrs:h?4+i%3:1+i%3,nr:h&&i%2?1:0})}
+return {off:0,seats:{},users:{admin:{pw:'admin123',notes:[]}},log:L}}
+S=load()||seed();save();
+const now=()=>Date.now()+S.off;
+async function tx(fn){
+if(!DB){const f=load();if(f)S=f;const r=fn(S);save();return r}
+const ref=DB.doc('lib/state'),lk=DB.doc('lib/lock');
+for(let i=0;i<14;i++){try{const a=await lk.acquire({holder:HID,ttlMs:3000});
+if(a.acquired){const sn=await ref.get();if(sn.exists)S=JSON.parse(sn.data().s);const r=fn(S);if(S.log.length>1500)S.log=S.log.slice(-1500);await ref.set({s:JSON.stringify(S)});return r}}catch(e){return 'Could not reach the shared server. Try again.'}
+await new Promise(r=>setTimeout(r,300))}
+return 'Server busy, please try again.'}
+function need(){const t=now(),td=dstr(t);return Object.keys(S.seats).some(id=>{const r=S.seats[id];return (r.st=='booked'&&t>r.due)||(r.st=='pre'&&r.date<td)||(r.st=='break'&&t>r.breakEnd)||((r.st=='in'||r.st=='break')&&t>r.endAt)})}
+async function initDb(){try{const db=await claude.use('db');if(!db)return;const ref=db.doc('lib/state'),sn=await ref.get();
+if(sn.exists)S=JSON.parse(sn.data().s);else{S=seed();await ref.set({s:JSON.stringify(S)})}
+DB=db;ref.onSnapshot(x=>{if(x.exists){try{S=JSON.parse(x.data().s);draw()}catch(e){}}});draw()}catch(e){}}
+const dstr=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const mm=ms=>{ms=Math.max(0,Math.ceil(ms/1000));return Math.floor(ms/60)+':'+String(ms%60).padStart(2,'0')};
+const sp=id=>+id.split('-')[1]<=25;
+const mySeat=u=>Object.keys(S.seats).find(k=>S.seats[k].uid==u);
+function note(u,m){(S.users[u]=S.users[u]||{notes:[]}).notes.push({t:now(),m})}
+function release(id,why){const r=S.seats[id];if(!r)return;if(r.start)S.log.push({seat:id,uid:r.uid,hour:new Date(r.start).getHours(),hrs:Math.max(.1,((r.st=='in'?now():r.endAt)-r.start)/36e5),nr:why=='noreturn'?1:0});
+const msg={time:'Your booking time is over. Seat '+id+' has been released.',noreturn:'You did not return within 20 minutes. Seat '+id+' has been released.',noshow:'You did not check in on time. Seat '+id+' has been released.',date:'Your special booking for '+id+' expired.',cancel:'You released seat '+id+'. Thanks for freeing it!'}[why];
+note(r.uid,msg);delete S.seats[id]}
+async function sweep(){if(sw||!need())return;sw=1;try{await tx(s=>{const t=now(),td=dstr(t);for(const id in s.seats){const r=s.seats[id];
+if(r.st=='booked'&&t>r.due)release(id,'noshow');
+else if(r.st=='pre'&&r.date<td)release(id,'date');
+else if(r.st=='break'&&t>r.breakEnd)release(id,'noreturn');
+else if((r.st=='in'||r.st=='break')&&t>r.endAt)release(id,'time')}})}catch(e){}sw=0}
+function go(v){location.hash=v}
+function route(){let v=location.hash.slice(1)||'home';if(v=='app'&&!me)v='login';['home','login','app'].forEach(x=>$(x).classList.toggle('hide',x!=v));if(v=='app')init()}
+addEventListener('hashchange',route);
+addEventListener('storage',e=>{if(e.key==K&&!DB){const f=load();if(f){S=f;draw()}}});
+let reg=false;function regMode(){reg=!reg;$('lh').textContent=reg?'Register':'Login';$('lb').textContent=reg?'Create account':'Login';$('rm').textContent=reg?'Back to login':'New student? Register';$('lerr').textContent=''}
+async function login(){const u=$('uid').value.trim(),p=$('pw').value;if(!u){$('lerr').textContent='No User ID entered. Please register to enter.';return}if(!p){$('lerr').textContent='Please enter your password.';return}
+const r=await tx(s=>{const x=s.users[u];if(reg){if(x&&x.pw)return 'dup';if(p.length<4)return 'short';s.users[u]={pw:p,notes:(x&&x.notes)||[]};return 'ok'}if(!x||!x.pw)return 'nouser';return x.pw==p?'ok':'bad'});
+const E={dup:'This User ID is already registered. Please login.',short:'Password must be at least 4 characters.',nouser:'User ID not found. Please register to enter.',bad:'Wrong User ID or password. Please try again.'};
+if(r!='ok'){$('lerr').textContent=E[r]||r;return}
+me=u;try{sessionStorage.setItem('libme',u)}catch(e){}$('lerr').textContent='';go('app')}
+function logout(){me=null;try{sessionStorage.removeItem('libme')}catch(e){}go('home')}
+async function skip(ms){await tx(s=>{s.off+=ms});await sweep();draw()}
+function init(){const tabs=[['floors','Floors'],['map','Live Map'],['book','Search & Book'],['mine','My Seat / QR']];if(me=='admin')tabs.push(['admin','Admin']);
+$('tabs').innerHTML=tabs.map(t=>`<button class="btn g" id="b-${t[0]}" onclick="show('${t[0]}')">${t[1]}</button>`).join('');
+$('who').textContent='👋 Welcome, '+me+(me=='admin'?' (Admin)':'');
+$('ftabs').innerHTML=[1,2,3,4].map(f=>`<button class="btn g" id="f${f}" onclick="cur=${f};draw()">Floor ${f}</button>`).join('');
+$('dt').min=dstr(now()+7*864e5);if(me=='admin')show('admin');else show('floors')}
+function show(t){tab=t;['floors','map','book','mine','admin'].forEach(x=>{$('t-'+x).classList.toggle('hide',x!=t);const b=$('b-'+x);if(b)b.classList.toggle('on',x==t)});draw()}
+function free(id){return !S.seats[id]}
+function srch(){const f=+$('sf').value,ty=$('st').value,n=$('sn').value,o=[];
+for(let fl=1;fl<=4&&o.length<40;fl++){if(f&&f!=fl)continue;for(let k=1;k<=125&&o.length<40;k++){const id=fl+'-'+k;if(!free(id))continue;if((ty=='s')!=sp(id))continue;if(n&&k!=+n)continue;o.push(id)}}
+$('res').innerHTML=o.length?o.map(id=>`<button class="btn g" onclick="sel('${id}')">F${id.replace('-',' · #')}</button>`).join(''):'<span class="mut">No free seats match.</span>'}
+function sel(id){pick=id;const s=sp(id);$('sel').innerHTML=`Selected: <b>Floor ${id.split('-')[0]} (${FL[id.split('-')[0]]}), seat #${id.split('-')[1]}</b>${s?' — <span style="color:var(--sp)">special exam seat, pre-book 7+ days ahead</span>':''}`;$('dt').style.display=s?'':'none';$('hrs').style.display='';if(tab!='book')show('book')}
+async function book(){const u=me,h=+$('hrs').value,d=$('dt').value;
+if(!pick){$('berr').innerHTML='<span class="err">Select a seat first.</span>';return}
+if(!DB){$('berr').innerHTML='<span class="err">Booking is locked: this device is not connected to the shared seat server, so a seat could be double-booked. Sign in to claude.ai, open the shared link and reload.</span>';return}
+let r=await tx(s=>{const have=Object.keys(s.seats).find(k=>s.seats[k].uid==u);
+if(have)return 'Rejected: you already hold seat '+have+'. One booking per User ID.';
+if(s.seats[pick])return 'Sorry, that seat was just taken. Pick another.';
+if(sp(pick)){if(!d||d<dstr(now()+7*864e5))return 'Special exam seats must be booked at least 7 days in advance.';s.seats[pick]={uid:u,st:'pre',hrs:h,date:d,breaks:0}}
+else s.seats[pick]={uid:u,st:'booked',hrs:h,due:now()+15*6e4,breaks:0};return 'OK'});
+if(r=='OK'){await new Promise(z=>setTimeout(z,900));const v=await DB.doc('lib/state').get(),sv=v.exists?JSON.parse(v.data().s):S;if(!sv.seats[pick]||sv.seats[pick].uid!=u){r='Sorry, someone else got this seat first. Pick another.';S=sv}}
+$('berr').innerHTML=r=='OK'?'<span class="ok">Booked! Go to “My Seat / QR” to check in.</span>':'<span class="err">'+r+'</span>';if(r=='OK'){pick=null;$('sel').textContent='Select a seat.';toast('Seat booked');srch();show('mine')}draw()}
+async function act(a){const u=me;const r=await tx(s=>{const id=Object.keys(s.seats).find(k=>s.seats[k].uid==u);if(!id)return 'No active booking.';const x=s.seats[id],t=now();
+if(a=='in'){if(x.st=='pre'&&x.date!=dstr(t))return 'Your exam seat is for '+x.date+'.';if(x.st!='booked'&&x.st!='pre')return 'Already checked in.';x.st='in';x.start=t;x.endAt=t+x.hrs*36e5;return 'Checked in at seat '+id+'. Ends in '+x.hrs+'h.'}
+if(a=='break'){if(x.st!='in')return 'Break QR works only while checked in.';if(x.breaks>=2)return 'Rejected: you have used both breaks (max 2).';x.st='break';x.breaks++;x.breakEnd=t+20*6e4;return 'Break started. Scan the return QR within 20 minutes.'}
+if(a=='back'){if(x.st!='break')return 'You are not on a break.';x.st='in';return 'Welcome back! Break ended.'}});
+toast(r);draw()}
+function qr(txt){let h=0;for(const c of txt)h=(h*31+c.charCodeAt(0))>>>0;let o='';const N=21,fin=(x,y)=>(x<7&&y<7)||(x>13&&y<7)||(x<7&&y>13);
+for(let y=0;y<N;y++)for(let x=0;x<N;x++){let on;if(fin(x,y)){const a=x>13?x-14:x,b=y>13?y-14:y;on=a==0||a==6||b==0||b==6||(a>1&&a<5&&b>1&&b<5)}else{h=(h*1664525+1013904223)>>>0;on=h>>>29&1}if(on)o+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}
+return `<svg viewBox="-1 -1 23 23" width="130" height="130" style="background:#fff"><g fill="#000">${o}</g></svg>`}
+function drawMap(){const f=cur;let fr=0,fs=0,x='';let h='';for(let n=1;n<=125;n++){const id=f+'-'+n,r=S.seats[id];if(!r){fr++;if(sp(id))fs++}
+const el=`<div class="seat ${r?r.st:''} ${sp(id)?'sp':''}" title="Seat ${n}${sp(id)?' (special)':''}: ${r?r.st:'free'}" onclick="mapPick('${id}')">${n}</div>`;if(sp(id))x+=el;else h+=el}
+if(drawMap.c!=h+x){drawMap.c=h+x;$('map').innerHTML=h;$('xmap').innerHTML=x}$('fname').textContent='Floor '+f+' — '+FL[f];$('fstat').innerHTML=`<b>${fr}</b> of 125 free · special exam zone (seats 1–25): ${fs} free · general: ${fr-fs} free`;
+[1,2,3,4].forEach(k=>{let c=0;for(let n=1;n<=125;n++)if(!S.seats[k+'-'+n])c++;const b=$('f'+k);b.textContent='Floor '+k+' ('+c+')';b.classList.toggle('on',k==f)})}
+function mapPick(id){if(!free(id)){toast('Seat '+id.split('-')[1]+' is '+S.seats[id].st);return}sel(id)}
+function drawMine(){const id=mySeat(me),u=S.users[me]||{notes:[]};let h='';
+const nt=u.notes.slice(-5).reverse().map(n=>`<div class="mut">🔔 ${new Date(n.t).toLocaleTimeString()} — ${n.m}</div>`).join('')||'<div class="mut">No notifications.</div>';
+if(!id)h+='<div class="card"><b>No active booking.</b> <span class="mut">Go to Search &amp; Book.</span></div>';
+else{const r=S.seats[id],t=now(),lbl={booked:'Booked — scan check-in QR at your seat',in:'Checked in (occupied)',break:'On break — scan the return QR',pre:'Special exam seat pre-booked for '+r.date}[r.st];
+let tm='';if(r.st=='booked')tm='Check in within '+mm(r.due-t);if(r.st=='in')tm='Time left: '+mm(r.endAt-t);if(r.st=='break')tm='Return within <b class="err">'+mm(r.breakEnd-t)+'</b> or seat is released · seat time left '+mm(r.endAt-t);
+h+=`<div class="card"><div class="big">Seat #${id.split('-')[1]} · Floor ${id.split('-')[0]}</div><div>${lbl}</div><div class="mut">${tm} · Breaks used: ${r.breaks}/2 · Booked for ${r.hrs}h</div><button class="btn g" style="margin-top:8px" onclick="cancel()">Release seat</button></div>
+<div class="qrs"><div class="card">${qr('LIB|'+id+'|CHECKIN')}<div><b>Check-in QR</b></div><div class="mut">LIB|${id}|CHECKIN</div><button class="btn" onclick="act('in')">Scan to check in</button></div>
+<div class="card">${qr('LIB|'+id+'|BREAK')}<div><b>Break QR</b></div><div class="mut">LIB|${id}|BREAK</div><button class="btn" onclick="act('break')">Scan to start 20-min break</button></div>
+<div class="card">${qr('LIB|'+id+'|RETURN')}<div><b>Return QR</b></div><div class="mut">LIB|${id}|RETURN</div><button class="btn" onclick="act('back')">Scan to come back</button></div></div>`}
+$('mine').innerHTML=h+'<div class="card" style="margin-top:14px"><b>Notifications</b>'+nt+'</div>'}
+function drawAdmin(){const c={};S.log.forEach(l=>c[l.hour]=(c[l.hour]||0)+1);Object.values(S.seats).forEach(r=>{if(r.start){const h=new Date(r.start).getHours();c[h]=(c[h]||0)+1}});
+const hs=[];for(let h=8;h<=21;h++)hs.push(h);const mx=Math.max(1,...hs.map(h=>c[h]||0));
+const st={};S.log.forEach(l=>{const x=st[l.seat]=st[l.seat]||{n:0,h:0,nr:0};x.n++;x.h+=l.hrs;x.nr+=l.nr});
+const hog=Object.entries(st).filter(e=>e[1].n>=3).map(e=>({id:e[0],n:e[1].n,avg:e[1].h/e[1].n,tot:e[1].h,nr:e[1].nr})).sort((a,b)=>b.avg*b.n-a.avg*a.n).slice(0,8);
+const occ=Object.keys(S.seats).length;
+$('adm').innerHTML=`<div class="row" style="margin-bottom:14px"><div class="card"><div class="mut">Seats in use / booked</div><div class="big">${occ} / 500</div></div><div class="card"><div class="mut">Sessions logged</div><div class="big">${S.log.length}</div></div><div class="card"><div class="mut">Peak hour</div><div class="big">${hs.reduce((a,b)=>(c[b]||0)>(c[a]||0)?b:a)}:00</div></div></div>
+<div class="card"><b>Peak hours (check-ins by start hour)</b><div class="bars" style="margin-top:10px">${hs.map(h=>`<div><div class="bar" style="height:${(c[h]||0)/mx*110}px"></div>${h}</div>`).join('')}</div></div>
+<div class="card"><b>Always-hogged seats</b><div class="mut">Seats repeatedly held for long sessions or abandoned on break.</div><table><tr><th>Seat</th><th>Sessions</th><th>Avg hours</th><th>Total hours</th><th>No-return</th></tr>${hog.map(x=>`<tr><td>F${x.id.split('-')[0]} #${x.id.split('-')[1]}</td><td>${x.n}</td><td>${x.avg.toFixed(1)}</td><td>${x.tot.toFixed(0)}</td><td>${x.nr}</td></tr>`).join('')}</table></div>`}
+function quiet(){let b=1,m=1e9;for(let f=1;f<=4;f++){const c=Object.keys(S.seats).filter(k=>k[0]==f).length;if(c<m){m=c;b=f}}return b}
+function quick(){const f=+$('sf').value||quiet();for(let n=26;n<=125;n++){const id=f+'-'+n;if(free(id)){$('st').value='g';sel(id);book();return}}toast('Floor '+f+' is full')}
+async function cancel(){await tx(s=>{const id=Object.keys(s.seats).find(k=>s.seats[k].uid==me);if(id)release(id,'cancel')});toast('Seat released');draw()}
+function stats(){const k=Object.keys(S.seats),my=mySeat(me),r=my&&S.seats[my];
+const d=[['#f37021,#ff9a3c','🪑 Free seats',500-k.length],['#9c36b5,#e64980','🎓 Exam seats free',100-k.filter(i=>sp(i)).length],['#d9480f,#f03e3e','🔥 Occupancy',Math.round(k.length/5)+'%'],['#0ca678,#1098ad','🌿 Quietest floor','Floor '+quiet()],['#2b2b2b,#555b6b','⏱ '+(r?r.st:'My status'),r&&r.endAt?mm(r.endAt-now()):'No seat']];
+const sh=d.map(x=>x[1]).join();if(stats.c!=sh){stats.c=sh;$('stats').innerHTML=d.map(x=>`<div class="stat" style="background:linear-gradient(135deg,${x[0]})">${x[1]}<b></b></div>`).join('')}
+$('stats').querySelectorAll('b').forEach((b,i)=>b.textContent=d[i][2])}
+const FI={1:['💬','Group discussions, project teams and collaborative study','#f37021,#ff9a3c'],2:['💻','CS & Engineering notes, reference books and lab work','#2b2b2b,#555b6b'],3:['🧬','Biology, life sciences and Law reading rooms','#0f766e,#14b8a6'],4:['📖','Story books, novels and general knowledge','#b91c1c,#f97316']};
+function drawFloors(){let h='';for(let f=1;f<=4;f++){let c=0,e=0;for(let n=1;n<=125;n++)if(S.seats[f+'-'+n]){c++;if(n<=25)e++}
+h+=`<div class="fcard f${f}" style="background:linear-gradient(135deg,${FI[f][2]})" onclick="openFloor(${f},this)"><div class="fi">${FI[f][0]}</div><h3>Floor ${f}</h3><div class="fn">${FL[f]}</div><p>${FI[f][1]}</p><div class="prog"><i style="width:${Math.round(c/1.25)}%"></i></div><div><b>${125-c}</b> free · 🎓 ${25-e}/25 exam seats free</div><div style="margin-top:8px;font-weight:700">Open floor →</div></div>`}
+h='<div class="fgrid">'+h+'</div>';if(drawFloors.c!=h){drawFloors.c=h;$('fl').innerHTML=h}}
+function toast(m){const d=document.createElement('div');d.textContent=m;$('toast').appendChild(d);setTimeout(()=>d.remove(),5000)}
+function draw(){if(!me)return;$('clock').textContent='· '+new Date(now()).toLocaleString()+(DB?' · 🟢 shared live':' · 🔴 NOT CONNECTED — booking locked');
+stats();if(tab=='floors')drawFloors();if(tab=='map')drawMap();if(tab=='mine')drawMine();if(tab=='book')srch();if(tab=='admin')drawAdmin();
+const n=(S.users[me]||{notes:[]}).notes;if(seen[me]===undefined)seen[me]=n.length;while(seen[me]<n.length){toast('🔔 '+n[seen[me]].m);seen[me]++}}
+try{me=sessionStorage.getItem('libme')}catch(e){}
+function openFloor(f,el){el.classList.add('go'+f);setTimeout(()=>{cur=f;show('map');el.classList.remove('go'+f)},450)}
+(()=>{const b=$('bg'),e=['📚','🪑','🎓','📖','✏️'];for(let i=0;i<14;i++){const s=document.createElement('span');s.textContent=e[i%5];s.style.cssText=`left:${i*7+2}%;animation-duration:${14+i%5*4}s;animation-delay:-${i*2}s;font-size:${18+i%4*8}px`;b.appendChild(s)}})();
+initDb();route();setInterval(()=>{if(!DB){const f=load();if(f)S=f}sweep();draw()},1000);
+</script></body></html>
